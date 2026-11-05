@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis vacaciones</title>
+<base target="_top">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="icono-192.png">
+<meta name="theme-color" content="#1f4e78">
+<style>
+  :root {
+    --bg: #f4f6f9; --card: #fff; --text: #1d2733; --muted: #6b7785; --line: #e3e7ec;
+    --accent: #1f4e78; --accent-soft: #e6eef6; --error: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; padding: 10px 16px; }
+  button.secondary { background: transparent; color: var(--accent); }
+  button:disabled { opacity: .6; cursor: default; }
+  input, select { font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; width: 100%; background: #fff; color: var(--text); }
+  label { display: block; font-size: 14px; margin: 12px 0 6px; }
+  .error { color: var(--error); font-size: 14px; min-height: 20px; margin-top: 10px; }
+  .hidden { display: none !important; }
+
+  #login { max-width: 360px; margin: 10vh auto 0; }
+  #login button { width: 100%; margin-top: 16px; }
+
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  header .acciones { display: flex; gap: 8px; align-items: center; }
+  header select { width: auto; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi .valor { font-size: 28px; font-weight: 700; margin-top: 4px; }
+  .kpi.principal { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .kpi.principal .muted { color: #d6e2ee; }
+
+  .otros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+
+  .seccion { margin-bottom: 16px; }
+  ul.lista { list-style: none; margin: 0; padding: 0; }
+  ul.lista li { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  ul.lista li:last-child { border-bottom: 0; }
+  .marca { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 24px; padding: 0 6px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+
+  .leyenda { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
+  .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+
+  .calendario { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .mes h3 { font-size: 14px; margin: 0 0 6px; text-transform: capitalize; }
+  .mes .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 12px; text-align: center; }
+  .mes .grid .cab { color: var(--muted); font-weight: 600; padding: 2px 0; }
+  .mes .grid .dia { padding: 5px 0; border-radius: 5px; }
+  .mes .grid .hoy { outline: 2px solid var(--accent); }
+
+  .c-V  { background: #cfe8d5; color: #1c5a2c; }
+  .c-M  { background: linear-gradient(135deg, #cfe8d5 50%, #fff 50%); color: #1c5a2c; border: 1px solid #cfe8d5; }
+  .c-R  { background: #fff0c2; color: #6b4e00; }
+  .c-E  { background: #f9d2cf; color: #7a1f17; }
+  .c-Ep { background: #f2b8b3; color: #7a1f17; }
+  .c-FO { background: #ffe0c2; color: #7a3d00; }
+  .c-P  { background: #d9d2f5; color: #3a2a80; }
+  .c-X  { background: #e3e7ec; color: #3c4652; }
+  .c-F  { background: #cfe3f7; color: #154a7a; }
+  .c-TP { background: #d4f0f0; color: #135858; }
+  .c-HI { background: #f3d6ec; color: #6b1f58; }
+  .c-otro { background: #eee; color: #333; }
+
+  #cargando { text-align: center; padding: 40px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="login" class="card">
+    <h1>Mis vacaciones</h1>
+    <p class="muted">Entra con el usuario y el PIN que te han dado.</p>
+    <form id="formLogin">
+      <label for="usuario">Usuario</label>
+      <input id="usuario" autocomplete="username" autocapitalize="none" spellcheck="false">
+      <label for="pin">PIN</label>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="current-password">
+      <button id="btnEntrar" type="submit">Entrar</button>
+      <div id="errorLogin" class="error"></div>
+    </form>
+    <p class="muted">Se registran las entradas a esta web y el tiempo de uso.</p>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <div>
+        <h1 id="saludo"></h1>
+        <div class="muted">Datos actualizados por RRHH</div>
+      </div>
+      <div class="acciones">
+        <select id="selAno" aria-label="Año"></select>
+        <button id="btnSalir" class="secondary" type="button">Salir</button>
+      </div>
+    </header>
+
+    <div id="cargando" class="muted">Cargando…</div>
+    <div id="errorApp" class="error"></div>
+
+    <div id="contenido" class="hidden">
+      <div class="kpis" id="kpis"></div>
+      <div class="otros" id="otros"></div>
+
+      <div class="card seccion">
+        <h2>Próximas ausencias</h2>
+        <ul class="lista" id="proximas"></ul>
+      </div>
+
+      <div class="card seccion">
+        <h2>Calendario del año</h2>
+        <div class="leyenda" id="leyenda"></div>
+        <div class="calendario" id="calendario"></div>
+      </div>
+
+      <div class="card seccion">
+        <h2>Todas las ausencias del año</h2>
+        <ul class="lista" id="todas"></ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const NOMBRES_MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const CAB_SEMANA = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  const DIAS_SEMANA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  let sesion = null;
+  let latido = null;
+
+  const $ = (id) => document.getElementById(id);
+  const claseCodigo = (c) => ({ 'E.': 'c-Ep' })[c] || (/^(V|M|R|E|FO|P|X|F|TP|HI)$/.test(c) ? 'c-' + c : 'c-otro');
+  const fmt = (n) => (Math.round(n * 10) / 10).toLocaleString('es-ES');
+
+  // Fuera de Google (GitHub Pages) la página habla con el Apps Script por esta dirección.
+  const API = 'https://script.google.com/macros/s/AKfycbyoKHEpfKf-GZU50aYU97YGyNmcUcLoIJzzuH3i3HbJO9GDiKOQj7rE85sViI9swt2o/exec';
+
+  function llamar(funcion, ...args) {
+    if (window.google && google.script && google.script.run) {
+      return new Promise((ok, ko) => {
+        google.script.run.withSuccessHandler(ok).withFailureHandler(ko)[funcion](...args);
+      });
+    }
+    // text/plain evita la comprobación CORS previa; sin cookies, así no influye la sesión de Google del navegador.
+    return fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: funcion, args }),
+      credentials: 'omit',
+      keepalive: funcion === 'seguirConectado' || funcion === 'logout'
+    })
+      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error(r.error); return r.datos; });
+  }
+
+  function mensajeError(e) {
+    return String((e && e.message) || e).replace(/^Error:\s*/, '');
+  }
+
+  $('formLogin').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    $('errorLogin').textContent = '';
+    $('btnEntrar').disabled = true;
+    try {
+      sesion = await llamar('login', $('usuario').value, $('pin').value);
+      $('pin').value = '';
+      $('saludo').textContent = 'Hola, ' + capitalizar(sesion.nombre);
+      const sel = $('selAno');
+      sel.innerHTML = '';
+      sesion.anos.forEach((a) => sel.add(new Option(a, a)));
+      const actual = new Date().getFullYear();
+      if (sesion.anos.includes(actual)) sel.value = actual;
+      $('login').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      latido = setInterval(seguirConectado, 60000);
+      cargarAno();
+    } catch (e) {
+      $('errorLogin').textContent = mensajeError(e);
+    } finally {
+      $('btnEntrar').disabled = false;
+    }
+  });
+
+  $('selAno').addEventListener('change', cargarAno);
+
+  $('btnSalir').addEventListener('click', () => {
+    if (sesion) llamar('logout', sesion.token).catch(() => {});
+    salir();
+  });
+
+  /** Avisa al servidor de que la web sigue abierta, para calcular el tiempo de la visita. */
+  function seguirConectado() {
+    if (sesion && document.visibilityState === 'visible') llamar('seguirConectado', sesion.token).catch(() => {});
+  }
+
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && !(window.google && google.script)) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (sesion && document.visibilityState === 'hidden') llamar('seguirConectado', sesion.token).catch(() => {});
+  });
+
+  function salir(mensaje) {
+    clearInterval(latido);
+    sesion = null;
+    $('app').classList.add('hidden');
+    $('login').classList.remove('hidden');
+    $('errorLogin').textContent = mensaje || '';
+  }
+
+  async function cargarAno() {
+    const ano = Number($('selAno').value);
+    $('contenido').classList.add('hidden');
+    $('errorApp').textContent = '';
+    $('cargando').classList.remove('hidden');
+    try {
+      const datos = await llamar('getMisDatos', sesion.token, ano);
+      pintar(datos);
+      $('contenido').classList.remove('hidden');
+    } catch (e) {
+      const msg = mensajeError(e);
+      if (msg.includes('SESION_CADUCADA')) return salir('Tu sesión ha caducado. Vuelve a entrar.');
+      $('errorApp').textContent = msg;
+    } finally {
+      $('cargando').classList.add('hidden');
+    }
+  }
+
+  function capitalizar(t) {
+    return String(t).toLowerCase().replace(/(^|\s)\S/g, (l) => l.toUpperCase());
+  }
+
+  function pintar(d) {
+    const r = d.resumen || {};
+    const val = (k) => Number(r[k] || 0);
+
+    const kpis = [
+      ['Vacaciones restantes', val('Vacaciones restantes'), true],
+      ['Vacaciones disfrutadas', val('Vacaciones'), false],
+      ['Vacaciones del año', val('Vacaciones iniciales'), false],
+      ['Acumuladas año anterior', val('Vacaciones acumuladas'), false],
+      ['Festivos trabajados', val('Festivo trabajado'), false]
+    ];
+    $('kpis').innerHTML = d.resumen
+      ? kpis.map(([t, v, p]) => `<div class="card kpi${p ? ' principal' : ''}"><div class="muted">${t}</div><div class="valor">${fmt(v)}</div></div>`).join('')
+      : '<div class="card muted">No hay resumen para este año.</div>';
+
+    const yaMostrados = ['Vacaciones restantes', 'Vacaciones', 'Vacaciones iniciales', 'Vacaciones acumuladas', 'Festivo trabajado'];
+    $('otros').innerHTML = Object.keys(r)
+      .filter((k) => !yaMostrados.includes(k) && r[k])
+      .map((k) => `<span class="chip">${k.charAt(0) + k.slice(1).toLowerCase()}: <b>${fmt(r[k])}</b></span>`).join('');
+
+    const usados = [...new Set(d.dias.map((x) => x.c))];
+    $('leyenda').innerHTML = usados.length
+      ? usados.map((c) => `<span><i class="marca ${claseCodigo(c)}">${c}</i>${d.leyenda[c] || c}</span>`).join('')
+      : 'Sin ausencias registradas este año.';
+
+    const periodos = agrupar(d.dias, d.ano, d.leyenda);
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const proximas = periodos.filter((p) => p.fin >= hoy);
+    $('proximas').innerHTML = proximas.length
+      ? proximas.map(itemPeriodo).join('')
+      : '<li class="muted">No tienes ausencias pendientes este año.</li>';
+    $('todas').innerHTML = periodos.length
+      ? periodos.map(itemPeriodo).join('')
+      : '<li class="muted">Sin ausencias registradas.</li>';
+
+    pintarCalendario(d);
+  }
+
+  /** Junta días seguidos con el mismo código en un solo periodo. */
+  function agrupar(dias, ano, leyenda) {
+    const ordenados = dias.map((x) => ({ fecha: new Date(ano, x.m, x.d), c: x.c })).sort((a, b) => a.fecha - b.fecha);
+    const periodos = [];
+    ordenados.forEach((x) => {
+      const ult = periodos[periodos.length - 1];
+      if (ult && ult.c === x.c && (x.fecha - ult.fin) / 86400000 === 1) {
+        ult.fin = x.fecha; ult.n++;
+      } else {
+        periodos.push({ c: x.c, texto: leyenda[x.c] || x.c, inicio: x.fecha, fin: x.fecha, n: 1 });
+      }
+    });
+    return periodos;
+  }
+
+  function fecha(f) {
+    return `${DIAS_SEMANA[f.getDay()]} ${f.getDate()} ${NOMBRES_MES[f.getMonth()]}`;
+  }
+
+  function itemPeriodo(p) {
+    const rango = p.n === 1 ? fecha(p.inicio) : `del ${fecha(p.inicio)} al ${fecha(p.fin)}`;
+    const dias = p.n === 1 ? '1 día' : p.n + ' días';
+    return `<li><i class="marca ${claseCodigo(p.c)}">${p.c}</i><div><b>${p.texto}</b><div class="muted">${rango} · ${dias}</div></div></li>`;
+  }
+
+  function pintarCalendario(d) {
+    const marcas = {};
+    d.dias.forEach((x) => { marcas[x.m + '-' + x.d] = x.c; });
+    const hoy = new Date();
+    let html = '';
+    for (let m = 0; m < 12; m++) {
+      const primero = (new Date(d.ano, m, 1).getDay() + 6) % 7;
+      const total = new Date(d.ano, m + 1, 0).getDate();
+      let celdas = CAB_SEMANA.map((c) => `<div class="cab">${c}</div>`).join('');
+      celdas += '<div></div>'.repeat(primero);
+      for (let dia = 1; dia <= total; dia++) {
+        const c = marcas[m + '-' + dia];
+        const esHoy = hoy.getFullYear() === d.ano && hoy.getMonth() === m && hoy.getDate() === dia;
+        const titulo = c ? ` title="${d.leyenda[c] || c}"` : '';
+        celdas += `<div class="dia${c ? ' ' + claseCodigo(c) : ''}${esHoy ? ' hoy' : ''}"${titulo}>${dia}</div>`;
+      }
+      html += `<div class="mes"><h3>${NOMBRES_MES[m]}</h3><div class="grid">${celdas}</div></div>`;
+    }
+    $('calendario').innerHTML = html;
+  }
+</script>
+</body>
+</html>
