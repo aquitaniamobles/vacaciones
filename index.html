@@ -72,6 +72,8 @@
   .c-TP { background: #d4f0f0; color: #135858; }
   .c-HI { background: #f3d6ec; color: #6b1f58; }
   .c-otro { background: #eee; color: #333; }
+  .oc-1 { background: #ffd8a8; color: #8a4b00; }
+  .oc-2 { background: #ff9e9e; color: #7a1010; font-weight: 700; }
 
   #cargando { text-align: center; padding: 40px 0; }
 </style>
@@ -263,9 +265,13 @@
       .map((k) => `<span class="chip">${k.charAt(0) + k.slice(1).toLowerCase()}: <b>${fmt(r[k])}</b></span>`).join('');
 
     const usados = [...new Set(d.dias.map((x) => x.c))];
-    $('leyenda').innerHTML = usados.length
+    $('leyenda').innerHTML = (usados.length
       ? usados.map((c) => `<span><i class="marca ${claseCodigo(c)}">${c}</i>${d.leyenda[c] || c}</span>`).join('')
-      : 'Sin ausencias registradas este año.';
+      : 'Sin ausencias registradas este año.')
+      + (d.grupo
+        ? '<span><i class="marca oc-1">&nbsp;</i>Ya libra 1 compañero de tu grupo</span>'
+          + '<span><i class="marca oc-2">&nbsp;</i>Libran 2 o más: casi imposible</span>'
+        : '');
 
     const periodos = agrupar(d.dias, d.ano, d.leyenda);
     const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
@@ -318,8 +324,11 @@
       for (let dia = 1; dia <= total; dia++) {
         const c = marcas[m + '-' + dia];
         const esHoy = hoy.getFullYear() === d.ano && hoy.getMonth() === m && hoy.getDate() === dia;
-        const titulo = c ? ` title="${d.leyenda[c] || c}"` : '';
-        celdas += `<div class="dia${c ? ' ' + claseCodigo(c) : ''}${esHoy ? ' hoy' : ''}"${titulo}>${dia}</div>`;
+        const ocupados = (d.ocupacion || {})[m + '-' + dia] || 0;
+        const clase = c ? claseCodigo(c) : ocupados >= 2 ? 'oc-2' : ocupados === 1 ? 'oc-1' : '';
+        const titulo = c ? ` title="${d.leyenda[c] || c}"`
+          : ocupados ? ` title="${ocupados === 1 ? 'Ya libra 1 compañero de tu grupo' : 'Libran ' + ocupados + ' compañeros de tu grupo'}"` : '';
+        celdas += `<div class="dia${clase ? ' ' + clase : ''}${esHoy ? ' hoy' : ''}"${titulo}>${dia}</div>`;
       }
       html += `<div class="mes"><h3>${NOMBRES_MES[m]}</h3><div class="grid">${celdas}</div></div>`;
     }
